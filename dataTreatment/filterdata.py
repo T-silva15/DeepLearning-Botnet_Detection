@@ -1,14 +1,14 @@
 import os
 
 # Define paths
-mergedPath = os.path.expanduser("~/code/proj/csv/mergedCSV/")
-filterPath = os.path.expanduser("~/code/proj/csv/filteredCSV/")
+mergedPath = os.path.expanduser("~/code/proj/datasets/mergedCSV/")
+filterPath = os.path.expanduser("~/code/proj/datasets/filterCSV/")
 
 # Ensure the output directory exists
 os.makedirs(filterPath, exist_ok=True)
 
 # Define the filter strings
-filterStrings = ["GREETH", "GREIP", "UDPPLAIN", "BENIGN"]
+filterStrings = ["MIRAI", "BENIGN"]
 
 # Function to filter a CSV file
 def filter_csv(input_file, output_file, filters):

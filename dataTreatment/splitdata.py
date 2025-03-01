@@ -2,13 +2,13 @@ import csv
 import os
 
 # Define the labels you want to filter
-labels = ["MIRAI-UDPPLAIN", "BENIGN", "MIRAI-GREETH_FLOOD", "MIRAI-GREIP_FLOOD"]  
+labels = ["MIRAI-GREIP_FLOOD", "MIRAI-UDPPLAIN", "MIRAI-GREETH_FLOOD", "BENIGN",]  
 
 # Define the maximum number of samples per file
 MAX_SAMPLES_PER_FILE = 100000
 
 # Output directory for split files
-OUTPUT_DIR = "/home/tsilva/code/proj/csv/splitCSV"
+OUTPUT_DIR = "/home/tsilva/code/proj/datasets/finalCSV"
 
 # Ensure the output directory exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -60,5 +60,5 @@ def main(input_folder):
 
 # Run the script
 if __name__ == "__main__":
-    input_folder = "/home/tsilva/code/proj/csv/filteredCSV"
+    input_folder = "/home/tsilva/code/proj/datasets/filterCSV"
     main(input_folder)
