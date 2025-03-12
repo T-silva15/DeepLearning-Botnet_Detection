@@ -43,9 +43,8 @@ def preprocess(features, label):
     features = (features - mean) / std
     
     # Add a time dimension
-    features = tf.expand_dims(features, axis=1)
+    features = tf.expand_dims(features, axis=0)  # Change axis to 0 to increase the time dimension
     
-    # Convert label to binary (assuming binary classification)
     label = tf.where(label == 'BENIGN', 0, 1)
     
     return features, label
@@ -69,15 +68,18 @@ train_dataset = dataset.take(train_size).repeat()
 val_dataset = dataset.skip(train_size).take(val_size).repeat()
 test_dataset = dataset.skip(train_size + val_size)
 
-# Very basic LSTM model
+# CNN-LSTM model
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(None, num_features)),
+    tf.keras.layers.Conv1D(64, 3, activation='relu'),
+    tf.keras.layers.MaxPooling1D(),
+    tf.keras.layers.LSTM(64, return_sequences=True),
     tf.keras.layers.LSTM(64),  
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
 
 # Compile the model with a lower learning rate
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
 
 # Print the model summary
 model.summary()
