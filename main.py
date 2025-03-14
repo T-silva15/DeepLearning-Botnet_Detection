@@ -74,7 +74,6 @@ model = tf.keras.Sequential([
     tf.keras.layers.Conv1D(64, 3, activation='relu'),
     tf.keras.layers.MaxPooling1D(),
     tf.keras.layers.LSTM(64, return_sequences=True),
-    tf.keras.layers.LSTM(64, return_sequences=True),
     tf.keras.layers.LSTM(64),  
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
