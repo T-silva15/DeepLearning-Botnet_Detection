@@ -64,8 +64,8 @@ train_size = int(0.7 * dataset_size)
 val_size = int(0.2 * dataset_size)
 test_size = dataset_size - train_size - val_size
 
-train_dataset = dataset.take(train_size)
-val_dataset = dataset.skip(train_size).take(val_size)
+train_dataset = dataset.take(train_size).repeat()
+val_dataset = dataset.skip(train_size).take(val_size).repeat()
 test_dataset = dataset.skip(train_size + val_size)
 
 # CNN-LSTM model
