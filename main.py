@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -7,7 +8,7 @@ import os
 num_features = 39
 
 # Number of records in the dataset
-num_lines = 100000
+num_lines = 250000
 
 # Define the path to the dataset folder
 data_folder = f'proj/datasets/sized_data/{num_lines}_lines'
@@ -33,9 +34,8 @@ def preprocess(features, label):
     # Convert the dictionary of features to a single tensor
     features = tf.concat([tf.cast(tf.expand_dims(tensor, axis=-1), tf.float32) for tensor in features.values()], axis=-1)
     
-    # Check for NaN or Inf values and replace them with 0
+    # Check for NaN values and replace them with 0
     features = tf.where(tf.math.is_nan(features), tf.zeros_like(features), features)
-    features = tf.where(tf.math.is_inf(features), tf.zeros_like(features), features)
     
     # Standardize the features
     mean = tf.reduce_mean(features, axis=0)
@@ -64,8 +64,8 @@ train_size = int(0.7 * dataset_size)
 val_size = int(0.2 * dataset_size)
 test_size = dataset_size - train_size - val_size
 
-train_dataset = dataset.take(train_size).repeat()
-val_dataset = dataset.skip(train_size).take(val_size).repeat()
+train_dataset = dataset.take(train_size)
+val_dataset = dataset.skip(train_size).take(val_size)
 test_dataset = dataset.skip(train_size + val_size)
 
 # CNN-LSTM model
@@ -74,30 +74,63 @@ model = tf.keras.Sequential([
     tf.keras.layers.Conv1D(64, 3, activation='relu'),
     tf.keras.layers.MaxPooling1D(),
     tf.keras.layers.LSTM(64, return_sequences=True),
+    tf.keras.layers.LSTM(64, return_sequences=True),
     tf.keras.layers.LSTM(64),  
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
 
 # Compile the model with a lower learning rate
-model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.01), loss='binary_crossentropy', metrics=['accuracy'])
 
 # Print the model summary
 model.summary()
 
-# Train the model
-history = model.fit(train_dataset, epochs=25, validation_data=val_dataset, steps_per_epoch=train_size // 32, validation_steps=val_size // 32) 
+# Define the checkpoint callback to save the best model based on validation accuracy
+checkpoint_callback = keras.callbacks.ModelCheckpoint(
+    filepath='proj/models/best_cnn_lstm_model.keras',
+    monitor='val_accuracy',
+    save_best_only=True,
+    mode='max',
+    verbose=1
+)
+
+# Train the model with the checkpoint callback
+history = model.fit(
+    train_dataset,
+    epochs=100,
+    validation_data=val_dataset,
+    steps_per_epoch=train_size // 32,
+    validation_steps=val_size // 32,
+    callbacks=[checkpoint_callback]
+)
+
+# Save the latest model
+# model.save('proj/models/cnn_lstm_latest_model.keras')
 
 # Evaluate the model on the test dataset
 test_loss, test_accuracy = model.evaluate(test_dataset, steps=test_size // 32)
 print(f'Test Loss: {test_loss}, Test Accuracy: {test_accuracy}')
 
 # Plot loss and accuracy
+plt.figure(figsize=(12, 6))
+
+# Subplot for training
+plt.subplot(1, 2, 1)
 plt.plot(history.history['loss'])
 plt.plot(history.history['accuracy'])
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train Loss', 'Train Accuracy'], loc='upper right')
+
+# Subplot for validation
+plt.subplot(1, 2, 2)
 plt.plot(history.history['val_loss'])
 plt.plot(history.history['val_accuracy'])
-plt.title('Model loss and accuracy')
-plt.ylabel('Loss/Accuracy')
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
-plt.legend(['Train Loss', 'Train Accuracy', 'Val Loss', 'Val Accuracy'], loc='upper right')
+plt.legend(['Val Loss', 'Val Accuracy'], loc='upper right')
+
+plt.tight_layout()
 plt.show()
