@@ -1,14 +1,13 @@
 import os
 import pandas as pd
 
-# Define the path to the folder containing the CSV files
-folder_path = 'proj/datasets/sized_data/1000_lines'
+folder_path = 'proj/datasets/raw_data/MIRAI-UDPPLAIN'
 
 # Iterate over each file in the folder
 for filename in os.listdir(folder_path):
     if filename.endswith('.csv'):
         # Extract the label from the filename (assuming the label is the part before the first underscore)
-        label = filename.split('_')[0]
+        label = "MIRAI-UDPPLAIN"
         
         # Construct the full file path
         file_path = os.path.join(folder_path, filename)

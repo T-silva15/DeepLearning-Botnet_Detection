@@ -35,7 +35,7 @@ def read_and_combine_csvs(directory):
 # Function to create folders with exactly x lines of each traffic type
 def create_sized_folders(directories, sizes):
     # Create a base output directory
-    base_output_dir = "proj/datasets/sized_data"
+    base_output_dir = "proj/datasets/sized_data/binary"
     os.makedirs(base_output_dir, exist_ok=True)
 
     # Process each size
