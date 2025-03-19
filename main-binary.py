@@ -11,7 +11,7 @@ num_features = 39
 num_lines = 250000
 
 # Define the path to the dataset folder
-data_folder = f'proj/datasets/sized_data/{num_lines}_lines'
+data_folder = f'proj/datasets/sized_data/binaryclass/{num_lines}_lines'
 
 # Function to load and preprocess the dataset
 def load_dataset(data_folder):
@@ -86,7 +86,7 @@ model.summary()
 
 # Define the checkpoint callback to save the best model based on validation accuracy
 checkpoint_callback = keras.callbacks.ModelCheckpoint(
-    filepath='proj/models/best_cnn_lstm_model.keras',
+    filepath='proj/models/best_binary_model.keras',
     monitor='val_accuracy',
     save_best_only=True,
     mode='max',

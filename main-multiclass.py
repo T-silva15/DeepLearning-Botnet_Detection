@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
 import matplotlib.pyplot as plt
 import os
 
@@ -8,7 +7,7 @@ import os
 num_features = 39
 
 # Number of records in the dataset
-num_lines = 250000
+num_lines = 100000
 
 # Define the path to the dataset folder
 data_folder = f'proj/datasets/sized_data/multiclass/{num_lines}_lines'
@@ -17,36 +16,34 @@ data_folder = f'proj/datasets/sized_data/multiclass/{num_lines}_lines'
 def load_dataset(data_folder):
     # List all CSV files in the data folder
     csv_files = [os.path.join(data_folder, f) for f in os.listdir(data_folder) if f.endswith('.csv')]
-    
+
     # Create a dataset from the CSV files
     dataset = tf.data.experimental.make_csv_dataset(
         csv_files,
-        batch_size=32,  
-        label_name='label',  
+        batch_size=32,
+        label_name='label',
         num_epochs=1,
         ignore_errors=False
     )
-    
+
     return dataset
 
 # Function to preprocess the dataset
-def preprocess(features, label):
+def preprocess(features, label): 
     # Convert the dictionary of features to a single tensor
     features = tf.concat([tf.cast(tf.expand_dims(tensor, axis=-1), tf.float32) for tensor in features.values()], axis=-1)
-    
+
     # Check for NaN values and replace them with 0
     features = tf.where(tf.math.is_nan(features), tf.zeros_like(features), features)
-    
+
     # Standardize the features
     mean = tf.reduce_mean(features, axis=0)
     std = tf.math.reduce_std(features, axis=0)
     features = (features - mean) / std
-    
+
     # Add a time dimension
-    features = tf.expand_dims(features, axis=0)  # Change axis to 0 to increase the time dimension
-    
-    label = tf.where(label == 'BENIGN', 0, 1)
-    
+    features = tf.expand_dims(features, axis=1)  # Add time dimension (batch_size, 1, num_features)
+
     return features, label
 
 # Load the dataset
@@ -70,23 +67,29 @@ test_dataset = dataset.skip(train_size + val_size)
 
 # CNN-LSTM model
 model = tf.keras.Sequential([
-    tf.keras.layers.Input(shape=(None, num_features)),
-    tf.keras.layers.Conv1D(64, 3, activation='relu'),
-    tf.keras.layers.MaxPooling1D(),
-    tf.keras.layers.LSTM(64, return_sequences=True),
-    tf.keras.layers.LSTM(64),  
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Input(shape=(1, num_features)),  # Input shape: (batch_size, 1, num_features)
+    tf.keras.layers.Conv1D(256, 1, activation='relu'),  
+    tf.keras.layers.MaxPooling1D(1),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.LSTM(256, return_sequences=True),  
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.LSTM(128),  #
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(4, activation='softmax')  
 ])
 
-# Compile the model with a lower learning rate
-model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.01), loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=tf.keras.optimizers.Adagrad(), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-# Print the model summary
 model.summary()
+
+# Ensure the directory exists
+os.makedirs('proj/models', exist_ok=True)
 
 # Define the checkpoint callback to save the best model based on validation accuracy
 checkpoint_callback = keras.callbacks.ModelCheckpoint(
-    filepath='proj/models/best_cnn_lstm_model.keras',
+    filepath='proj/models/best_multiclass_model.keras',
     monitor='val_accuracy',
     save_best_only=True,
     mode='max',
@@ -96,15 +99,12 @@ checkpoint_callback = keras.callbacks.ModelCheckpoint(
 # Train the model with the checkpoint callback
 history = model.fit(
     train_dataset,
-    epochs=100,
+    epochs=50,
     validation_data=val_dataset,
     steps_per_epoch=train_size // 32,
     validation_steps=val_size // 32,
     callbacks=[checkpoint_callback]
 )
-
-# Save the latest model
-# model.save('proj/models/cnn_lstm_latest_model.keras')
 
 # Evaluate the model on the test dataset
 test_loss, test_accuracy = model.evaluate(test_dataset, steps=test_size // 32)
