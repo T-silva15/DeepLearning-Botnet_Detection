@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import logging
 from pathlib import Path
-import pandas as pd
-from sklearn.utils import class_weight
 import random
 
 # Set up logging
@@ -26,12 +24,11 @@ class Config:
     VAL_SPLIT = 0.2
     TEST_SPLIT = 0.1
     EPOCHS = 50
-    LEARNING_RATE = 0.0001  # Reduced learning rate for stability
+    LEARNING_RATE = 0.0001 
     
     # Data processing
     SHUFFLE_BUFFER = 1000
-    CLIP_VALUE = 10.0  # Prevent extreme gradients
-    # Flag to ensure proper class balance across splits
+    CLIP_VALUE = 10.0 
     ENSURE_CLASS_BALANCE = True
     
 # Ensure data folder exists
@@ -442,7 +439,7 @@ def create_model():
     # Create model
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
-    # Use Adam with gradient clipping to prevent exploding gradients
+    # Use Adam with gradient clipping
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=cfg.LEARNING_RATE,
         clipnorm=1.0  # Clip gradients to prevent NaN values
@@ -452,15 +449,14 @@ def create_model():
     model.compile(
         optimizer=optimizer,
         loss=tf.keras.losses.BinaryCrossentropy(
-            from_logits=False,  # Already using sigmoid activation
-            label_smoothing=0.1  # Add label smoothing for numerical stability
+            from_logits=False,  
+            label_smoothing=0.1 
         ),
         metrics=[
             'accuracy',
             tf.keras.metrics.AUC(name='auc'),
             tf.keras.metrics.Precision(name='precision'),
             tf.keras.metrics.Recall(name='recall'),
-            # Fix F1Score by ensuring it handles the correct input shapes
             tf.keras.metrics.F1Score(
                 name='f1_score',
                 threshold=0.5,
@@ -480,7 +476,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         # Model checkpoint to save best model
         tf.keras.callbacks.ModelCheckpoint(
             filepath=cfg.MODEL_PATH,
-            monitor='val_accuracy',  # Changed from f1_score due to shape mismatch
+            monitor='val_accuracy',  
             save_best_only=True,
             mode='max',
             verbose=1
@@ -495,7 +491,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         # Learning rate scheduler
         tf.keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss',
-            factor=0.5,  # More conservative reduction
+            factor=0.5, 
             patience=5,
             min_lr=1e-6,
             verbose=1
@@ -560,55 +556,68 @@ def evaluate_model(model, test_dataset, test_batches):
     return metrics
 
 def plot_training_history(history):
-    """Plot the training and validation metrics."""
-    logger.info("Plotting training history")
-    
-    # Create figure with subplots
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    """Plot the training and validation metrics in separate windows."""
+    logger.info("Plotting training history in separate figures")
     
     # Plot loss
-    axes[0, 0].plot(history.history['loss'], label='Training Loss')
-    axes[0, 0].plot(history.history['val_loss'], label='Validation Loss')
-    axes[0, 0].set_title('Model Loss')
-    axes[0, 0].set_xlabel('Epoch')
-    axes[0, 0].set_ylabel('Loss')
-    axes[0, 0].legend()
-    axes[0, 0].grid(True)
+    plt.figure(figsize=(8, 6))
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('model_loss.png', dpi=300)
+    plt.show()
     
     # Plot accuracy
-    axes[0, 1].plot(history.history['accuracy'], label='Training Accuracy')
-    axes[0, 1].plot(history.history['val_accuracy'], label='Validation Accuracy')
-    axes[0, 1].set_title('Model Accuracy')
-    axes[0, 1].set_xlabel('Epoch')
-    axes[0, 1].set_ylabel('Accuracy')
-    axes[0, 1].legend()
-    axes[0, 1].grid(True)
+    plt.figure(figsize=(8, 6))
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('model_accuracy.png', dpi=300)
+    plt.show()
     
     # Plot AUC
     if 'auc' in history.history:
-        axes[1, 0].plot(history.history['auc'], label='Training AUC')
-        axes[1, 0].plot(history.history['val_auc'], label='Validation AUC')
-        axes[1, 0].set_title('Model AUC')
-        axes[1, 0].set_xlabel('Epoch')
-        axes[1, 0].set_ylabel('AUC')
-        axes[1, 0].legend()
-        axes[1, 0].grid(True)
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['auc'], label='Training AUC')
+        plt.plot(history.history['val_auc'], label='Validation AUC')
+        plt.title('Model AUC')
+        plt.xlabel('Epoch')
+        plt.ylabel('AUC')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('model_auc.png', dpi=300)
+        plt.show()
     
     # Plot Precision and Recall
     if 'precision' in history.history and 'recall' in history.history:
-        axes[1, 1].plot(history.history['precision'], label='Training Precision')
-        axes[1, 1].plot(history.history['recall'], label='Training Recall')
-        axes[1, 1].plot(history.history['val_precision'], label='Val Precision')
-        axes[1, 1].plot(history.history['val_recall'], label='Val Recall')
-        axes[1, 1].set_title('Precision and Recall')
-        axes[1, 1].set_xlabel('Epoch')
-        axes[1, 1].set_ylabel('Score')
-        axes[1, 1].legend()
-        axes[1, 1].grid(True)
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['precision'], label='Training Precision')
+        plt.plot(history.history['recall'], label='Training Recall')
+        plt.plot(history.history['val_precision'], label='Val Precision')
+        plt.plot(history.history['val_recall'], label='Val Recall')
+        plt.title('Precision and Recall')
+        plt.xlabel('Epoch')
+        plt.ylabel('Score')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('model_precision_recall.png', dpi=300)
+        plt.show()
     
-    plt.tight_layout()
-    plt.savefig('model_training_results.png', dpi=300)
-    plt.show()
+    # Also save a combined figure for reference
+    plt.figure(figsize=(16, 12))
+    plt.savefig('model_training_results_combined.png', dpi=300)
 
 def main():
     """Main function to run the entire training pipeline."""
