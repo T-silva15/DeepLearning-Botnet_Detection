@@ -5,6 +5,9 @@ import os
 import logging
 from pathlib import Path
 import random
+from binaryFalsePositiveRate import BinaryFalsePositiveRate
+
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -461,7 +464,8 @@ def create_model():
                 name='f1_score',
                 threshold=0.5,
                 dtype=tf.float32
-            )
+            ),
+            BinaryFalsePositiveRate(name='false_positive_rate')
         ]
     )
     
@@ -556,10 +560,10 @@ def evaluate_model(model, test_dataset, test_batches):
     return metrics
 
 def plot_training_history(history):
-    """Plot the training and validation metrics in separate windows."""
+    """Plot the training and validation metrics in separate figures and as a combined grid."""
     logger.info("Plotting training history in separate figures")
     
-    # Plot loss
+    # Plot Loss
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
@@ -572,7 +576,7 @@ def plot_training_history(history):
     plt.savefig('model_loss.png', dpi=300)
     plt.show()
     
-    # Plot accuracy
+    # Plot Accuracy
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['accuracy'], label='Training Accuracy')
     plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
@@ -585,7 +589,7 @@ def plot_training_history(history):
     plt.savefig('model_accuracy.png', dpi=300)
     plt.show()
     
-    # Plot AUC
+    # Plot AUC (if available)
     if 'auc' in history.history:
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['auc'], label='Training AUC')
@@ -603,9 +607,9 @@ def plot_training_history(history):
     if 'precision' in history.history and 'recall' in history.history:
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['precision'], label='Training Precision')
+        plt.plot(history.history['val_precision'], label='Validation Precision')
         plt.plot(history.history['recall'], label='Training Recall')
-        plt.plot(history.history['val_precision'], label='Val Precision')
-        plt.plot(history.history['val_recall'], label='Val Recall')
+        plt.plot(history.history['val_recall'], label='Validation Recall')
         plt.title('Precision and Recall')
         plt.xlabel('Epoch')
         plt.ylabel('Score')
@@ -615,9 +619,80 @@ def plot_training_history(history):
         plt.savefig('model_precision_recall.png', dpi=300)
         plt.show()
     
-    # Also save a combined figure for reference
-    plt.figure(figsize=(16, 12))
+    # Plot False Positive Rate (if available)
+    if 'false_positive_rate' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['false_positive_rate'], label='Training FPR')
+        plt.plot(history.history['val_false_positive_rate'], label='Validation FPR')
+        plt.title('False Positive Rate')
+        plt.xlabel('Epoch')
+        plt.ylabel('FPR')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('model_fpr.png', dpi=300)
+        plt.show()
+    
+    # Combined Grid Figure (2 x 3 grid)
+    fig, axs = plt.subplots(2, 3, figsize=(18, 12))
+    
+    # Loss
+    axs[0, 0].plot(history.history['loss'], label='Train Loss')
+    axs[0, 0].plot(history.history['val_loss'], label='Val Loss')
+    axs[0, 0].set_title('Loss')
+    axs[0, 0].legend()
+    axs[0, 0].grid(True)
+    
+    # Accuracy
+    axs[0, 1].plot(history.history['accuracy'], label='Train Accuracy')
+    axs[0, 1].plot(history.history['val_accuracy'], label='Val Accuracy')
+    axs[0, 1].set_title('Accuracy')
+    axs[0, 1].legend()
+    axs[0, 1].grid(True)
+    
+    # AUC
+    if 'auc' in history.history:
+        axs[0, 2].plot(history.history['auc'], label='Train AUC')
+        axs[0, 2].plot(history.history['val_auc'], label='Val AUC')
+        axs[0, 2].set_title('AUC')
+        axs[0, 2].legend()
+        axs[0, 2].grid(True)
+    else:
+        axs[0, 2].set_visible(False)
+    
+    # Precision
+    if 'precision' in history.history:
+        axs[1, 0].plot(history.history['precision'], label='Train Precision')
+        axs[1, 0].plot(history.history['val_precision'], label='Val Precision')
+        axs[1, 0].set_title('Precision')
+        axs[1, 0].legend()
+        axs[1, 0].grid(True)
+    else:
+        axs[1, 0].set_visible(False)
+    
+    # Recall
+    if 'recall' in history.history:
+        axs[1, 1].plot(history.history['recall'], label='Train Recall')
+        axs[1, 1].plot(history.history['val_recall'], label='Val Recall')
+        axs[1, 1].set_title('Recall')
+        axs[1, 1].legend()
+        axs[1, 1].grid(True)
+    else:
+        axs[1, 1].set_visible(False)
+    
+    # False Positive Rate
+    if 'false_positive_rate' in history.history:
+        axs[1, 2].plot(history.history['false_positive_rate'], label='Train FPR')
+        axs[1, 2].plot(history.history['val_false_positive_rate'], label='Val FPR')
+        axs[1, 2].set_title('False Positive Rate')
+        axs[1, 2].legend()
+        axs[1, 2].grid(True)
+    else:
+        axs[1, 2].set_visible(False)
+    
+    plt.tight_layout()
     plt.savefig('model_training_results_combined.png', dpi=300)
+    plt.show()
 
 def main():
     """Main function to run the entire training pipeline."""
