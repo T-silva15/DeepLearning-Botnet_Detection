@@ -315,8 +315,12 @@ def evaluate_model(model, test_dataset, test_batches):
         for i in range(len(all_possible_classes)):
             if i == 0:
                 class_names.append("Benign")
-            else:
-                class_names.append(f"Attack{i}")
+            if i == 1:
+                class_names.append("Mirai GREIP Flood")
+            if i == 2:
+                class_names.append("Mirai GREETH Flood")
+            if i == 3:
+                class_names.append("MIRAI UDPPLAIN")
         logger.info(f"Using class names: {class_names}")
         
         report = classification_report(
@@ -489,8 +493,43 @@ def main():
         metrics = evaluate_model(model, test_dataset, test_batches)
         plot_training_history(history)
         
+        # Print summary of final results
+        logger.info("========== FINAL TRAINING RESULTS ==========")
+        logger.info(f"Final training accuracy: {history.history['accuracy'][-1]:.4f}")
+        logger.info(f"Final validation accuracy: {history.history['val_accuracy'][-1]:.4f}")
+        
+        logger.info(f"Final training loss: {history.history['loss'][-1]:.4f}")
+        logger.info(f"Final validation loss: {history.history['val_loss'][-1]:.4f}")
+        
+        if 'auc' in history.history:
+            logger.info(f"Final training AUC: {history.history['auc'][-1]:.4f}")
+            logger.info(f"Final validation AUC: {history.history['val_auc'][-1]:.4f}")
+        
+        if 'f1_score' in history.history:
+            logger.info(f"Final training F1 Score: {history.history['f1_score'][-1]:.4f}")
+            logger.info(f"Final validation F1 Score: {history.history['val_f1_score'][-1]:.4f}")
+        
+        if 'precision' in history.history:
+            logger.info(f"Final training Precision: {history.history['precision'][-1]:.4f}")
+            logger.info(f"Final validation Precision: {history.history['val_precision'][-1]:.4f}")
+        
+        if 'recall' in history.history:
+            logger.info(f"Final training Recall: {history.history['recall'][-1]:.4f}")
+            logger.info(f"Final validation Recall: {history.history['val_recall'][-1]:.4f}")
+        
+        if 'false_positive_rate' in history.history:
+            logger.info(f"Final training FPR: {history.history['false_positive_rate'][-1]:.4f}")
+            logger.info(f"Final validation FPR: {history.history['val_false_positive_rate'][-1]:.4f}")
+        
+        logger.info(f"Test set results:")
+        for metric_name, value in metrics.items():
+            logger.info(f"  {metric_name}: {value:.4f}")
+        
+        logger.info("==========================================")
+        
         logger.info("Multiclass training pipeline completed successfully")
         return model, history, metrics
+        
         
     except Exception as e:
         logger.error(f"Error in training pipeline: {str(e)}")

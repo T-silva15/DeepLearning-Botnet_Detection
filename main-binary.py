@@ -504,7 +504,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         tf.keras.callbacks.TerminateOnNaN(),
         # TensorBoard logging
         tf.keras.callbacks.TensorBoard(
-            log_dir='./logs',
+            log_dir='proj/logs',
             histogram_freq=1,
             update_freq='epoch'
         )
@@ -560,33 +560,33 @@ def evaluate_model(model, test_dataset, test_batches):
     return metrics
 
 def plot_training_history(history):
-    """Plot the training and validation metrics in separate figures and as a combined grid."""
-    logger.info("Plotting training history in separate figures")
+    """Plot binary training metrics in separate figures and as a combined grid."""
+    logger.info("Plotting training history in separate figures (binary)")
     
     # Plot Loss
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title('Model Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
+    plt.title("Model Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('model_loss.png', dpi=300)
+    plt.savefig('binary_model_loss.png', dpi=300)
     plt.show()
     
     # Plot Accuracy
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['accuracy'], label='Training Accuracy')
     plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title('Model Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
+    plt.title("Model Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('model_accuracy.png', dpi=300)
+    plt.savefig('binary_model_accuracy.png', dpi=300)
     plt.show()
     
     # Plot AUC (if available)
@@ -594,104 +594,123 @@ def plot_training_history(history):
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['auc'], label='Training AUC')
         plt.plot(history.history['val_auc'], label='Validation AUC')
-        plt.title('Model AUC')
-        plt.xlabel('Epoch')
-        plt.ylabel('AUC')
+        plt.title("Model AUC")
+        plt.xlabel("Epoch")
+        plt.ylabel("AUC")
+        plt.ylim(.9998, 1)
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('model_auc.png', dpi=300)
+        plt.savefig('binary_model_auc.png', dpi=300)
         plt.show()
     
-    # Plot Precision and Recall
-    if 'precision' in history.history and 'recall' in history.history:
+    # Plot F1 Score (if available)
+    if 'f1_score' in history.history:
         plt.figure(figsize=(8, 6))
-        plt.plot(history.history['precision'], label='Training Precision')
-        plt.plot(history.history['val_precision'], label='Validation Precision')
-        plt.plot(history.history['recall'], label='Training Recall')
-        plt.plot(history.history['val_recall'], label='Validation Recall')
-        plt.title('Precision and Recall')
-        plt.xlabel('Epoch')
-        plt.ylabel('Score')
+        plt.plot(history.history['f1_score'], label='Training F1 Score')
+        plt.plot(history.history['val_f1_score'], label='Validation F1 Score')
+        plt.title("Model F1 Score")
+        plt.xlabel("Epoch")
+        plt.ylabel("F1 Score")
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('model_precision_recall.png', dpi=300)
+        plt.savefig('binary_model_f1_score.png', dpi=300)
+        plt.show()
+        
+    # Plot Precision and Recall (if available)
+    if 'precision' in history.history and 'recall' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['precision'], label="Training Precision")
+        plt.plot(history.history['val_precision'], label="Validation Precision")
+        plt.plot(history.history['recall'], label="Training Recall")
+        plt.plot(history.history['val_recall'], label="Validation Recall")
+        plt.title("Model Precision and Recall")
+        plt.xlabel("Epoch")
+        plt.ylabel("Score")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('binary_model_precision_recall.png', dpi=300)
         plt.show()
     
     # Plot False Positive Rate (if available)
     if 'false_positive_rate' in history.history:
         plt.figure(figsize=(8, 6))
-        plt.plot(history.history['false_positive_rate'], label='Training FPR')
-        plt.plot(history.history['val_false_positive_rate'], label='Validation FPR')
-        plt.title('False Positive Rate')
-        plt.xlabel('Epoch')
-        plt.ylabel('FPR')
+        plt.plot(history.history['false_positive_rate'], label="Training FPR")
+        plt.plot(history.history['val_false_positive_rate'], label="Validation FPR")
+        plt.title("Model False Positive Rate")
+        plt.xlabel("Epoch")
+        plt.ylabel("FPR")
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('model_fpr.png', dpi=300)
+        plt.savefig('binary_model_fpr.png', dpi=300)
         plt.show()
     
     # Combined Grid Figure (2 x 3 grid)
+    # Top row: Loss, Accuracy, AUC; Bottom row: F1 Score, Precision/Recall, FPR.
     fig, axs = plt.subplots(2, 3, figsize=(18, 12))
     
-    # Loss
+    # Loss graph (top-left)
     axs[0, 0].plot(history.history['loss'], label='Train Loss')
     axs[0, 0].plot(history.history['val_loss'], label='Val Loss')
-    axs[0, 0].set_title('Loss')
+    axs[0, 0].set_title("Loss")
     axs[0, 0].legend()
     axs[0, 0].grid(True)
     
-    # Accuracy
-    axs[0, 1].plot(history.history['accuracy'], label='Train Accuracy')
-    axs[0, 1].plot(history.history['val_accuracy'], label='Val Accuracy')
-    axs[0, 1].set_title('Accuracy')
+    # Accuracy graph (top-middle)
+    axs[0, 1].plot(history.history['accuracy'], label="Train Accuracy")
+    axs[0, 1].plot(history.history['val_accuracy'], label="Val Accuracy")
+    axs[0, 1].set_title("Accuracy")
     axs[0, 1].legend()
     axs[0, 1].grid(True)
     
-    # AUC
+    # AUC graph (top-right)
     if 'auc' in history.history:
-        axs[0, 2].plot(history.history['auc'], label='Train AUC')
-        axs[0, 2].plot(history.history['val_auc'], label='Val AUC')
-        axs[0, 2].set_title('AUC')
+        axs[0, 2].plot(history.history['auc'], label="Train AUC")
+        axs[0, 2].plot(history.history['val_auc'], label="Val AUC")
+        axs[0, 2].set_title("AUC")
+        axs[0, 2].set_ylim(.9998, 1) 
         axs[0, 2].legend()
         axs[0, 2].grid(True)
     else:
         axs[0, 2].set_visible(False)
-    
-    # Precision
-    if 'precision' in history.history:
-        axs[1, 0].plot(history.history['precision'], label='Train Precision')
-        axs[1, 0].plot(history.history['val_precision'], label='Val Precision')
-        axs[1, 0].set_title('Precision')
+        
+    # F1 Score graph (bottom-left)
+    if 'f1_score' in history.history:
+        axs[1, 0].plot(history.history['f1_score'], label="Train F1")
+        axs[1, 0].plot(history.history['val_f1_score'], label="Val F1")
+        axs[1, 0].set_title("F1 Score")
         axs[1, 0].legend()
         axs[1, 0].grid(True)
     else:
         axs[1, 0].set_visible(False)
     
-    # Recall
-    if 'recall' in history.history:
-        axs[1, 1].plot(history.history['recall'], label='Train Recall')
-        axs[1, 1].plot(history.history['val_recall'], label='Val Recall')
-        axs[1, 1].set_title('Recall')
+    # Precision & Recall graph (bottom-middle)
+    if 'precision' in history.history and 'recall' in history.history:
+        axs[1, 1].plot(history.history['precision'], label="Train Precision")
+        axs[1, 1].plot(history.history['val_precision'], label="Val Precision")
+        axs[1, 1].plot(history.history['recall'], label="Train Recall")
+        axs[1, 1].plot(history.history['val_recall'], label="Val Recall")
+        axs[1, 1].set_title("Precision & Recall")
         axs[1, 1].legend()
         axs[1, 1].grid(True)
     else:
         axs[1, 1].set_visible(False)
-    
-    # False Positive Rate
+        
+    # False Positive Rate graph (bottom-right)
     if 'false_positive_rate' in history.history:
-        axs[1, 2].plot(history.history['false_positive_rate'], label='Train FPR')
-        axs[1, 2].plot(history.history['val_false_positive_rate'], label='Val FPR')
-        axs[1, 2].set_title('False Positive Rate')
+        axs[1, 2].plot(history.history['false_positive_rate'], label="Train FPR")
+        axs[1, 2].plot(history.history['val_false_positive_rate'], label="Val FPR")
+        axs[1, 2].set_title("False Positive Rate")
         axs[1, 2].legend()
         axs[1, 2].grid(True)
     else:
         axs[1, 2].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig('model_training_results_combined.png', dpi=300)
+    plt.savefig("binary_model_training_results_combined.png", dpi=300)
     plt.show()
 
 def main():
@@ -732,6 +751,38 @@ def main():
         # Evaluate model
         metrics = evaluate_model(model, test_dataset, test_batches)
         
+        # Print summary of final results
+        logger.info("========== FINAL TRAINING RESULTS ==========")
+        logger.info(f"Final training accuracy: {history.history['accuracy'][-1]:.4f}")
+        logger.info(f"Final validation accuracy: {history.history['val_accuracy'][-1]:.4f}")
+        
+        logger.info(f"Final training loss: {history.history['loss'][-1]:.4f}")
+        logger.info(f"Final validation loss: {history.history['val_loss'][-1]:.4f}")
+        
+        if 'auc' in history.history:
+            logger.info(f"Final training AUC: {history.history['auc'][-1]:.4f}")
+            logger.info(f"Final validation AUC: {history.history['val_auc'][-1]:.4f}")
+        
+        if 'f1_score' in history.history:
+            logger.info(f"Final training F1 Score: {history.history['f1_score'][-1]:.4f}")
+            logger.info(f"Final validation F1 Score: {history.history['val_f1_score'][-1]:.4f}")
+        
+        if 'precision' in history.history:
+            logger.info(f"Final training Precision: {history.history['precision'][-1]:.4f}")
+            logger.info(f"Final validation Precision: {history.history['val_precision'][-1]:.4f}")
+        
+        if 'recall' in history.history:
+            logger.info(f"Final training Recall: {history.history['recall'][-1]:.4f}")
+            logger.info(f"Final validation Recall: {history.history['val_recall'][-1]:.4f}")
+        
+        if 'false_positive_rate' in history.history:
+            logger.info(f"Final training FPR: {history.history['false_positive_rate'][-1]:.4f}")
+            logger.info(f"Final validation FPR: {history.history['val_false_positive_rate'][-1]:.4f}")
+        
+        logger.info(f"Test set results: {metrics}")
+        logger.info("==========================================")
+        
+
         # Plot results
         plot_training_history(history)
         
