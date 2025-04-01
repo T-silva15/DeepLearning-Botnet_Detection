@@ -178,7 +178,7 @@ def analyze_dataset_stats(dataset, num_samples=1000):
 def prepare_datasets():
     """Prepare training, validation and test datasets."""
     try:
-        # Attempt to use TensorFlow Probability for robust statistics
+        # TensorFlow Probability for robust statistics
         global tfp
         import tensorflow_probability as tfp
         logger.info("Using TensorFlow Probability for robust statistics")
@@ -577,7 +577,7 @@ def plot_training_history(history):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('proj/src/results/binary_model_loss.png', dpi=300)
-    plt.show()
+    plt.close()
     
     # Plot Accuracy
     plt.figure(figsize=(8, 6))
@@ -590,7 +590,7 @@ def plot_training_history(history):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('proj/src/results/binary_model_accuracy.png', dpi=300)
-    plt.show()
+    plt.close()
     
     # Plot AUC (if available)
     if 'auc' in history.history:
@@ -605,7 +605,7 @@ def plot_training_history(history):
         plt.grid(True)
         plt.tight_layout()
         plt.savefig('proj/src/results/binary_model_auc.png', dpi=300)
-        plt.show()
+        plt.close()
     
     # Plot F1 Score (if available)
     if 'f1_score' in history.history:
@@ -619,7 +619,7 @@ def plot_training_history(history):
         plt.grid(True)
         plt.tight_layout()
         plt.savefig('proj/src/results/binary_model_f1_score.png', dpi=300)
-        plt.show()
+        plt.close()
         
     # Plot Precision and Recall (if available)
     if 'precision' in history.history and 'recall' in history.history:
@@ -635,7 +635,7 @@ def plot_training_history(history):
         plt.grid(True)
         plt.tight_layout()
         plt.savefig('proj/src/results/binary_model_precision_recall.png', dpi=300)
-        plt.show()
+        plt.close()
     
     # Plot False Positive Rate (if available)
     if 'false_positive_rate' in history.history:
@@ -649,7 +649,7 @@ def plot_training_history(history):
         plt.grid(True)
         plt.tight_layout()
         plt.savefig('proj/src/results/binary_model_fpr.png', dpi=300)
-        plt.show()
+        plt.close()
     
     # Combined Grid Figure (2 x 3 grid)
     # Top row: Loss, Accuracy, AUC; Bottom row: F1 Score, Precision/Recall, FPR.
@@ -714,7 +714,7 @@ def plot_training_history(history):
     
     plt.tight_layout()
     plt.savefig("proj/src/results/binary_model_training_results_combined.png", dpi=300)
-    plt.show()
+    plt.close()
 
 def main():
     """Main function to run the entire training pipeline."""
