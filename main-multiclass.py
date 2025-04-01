@@ -200,7 +200,7 @@ def create_model():
     x = tf.keras.layers.MaxPooling1D(2, padding='same')(x)
     x = tf.keras.layers.Dropout(0.3)(x)
     
-    # LSTM layers
+    # LSTM layers with Recurrent Droupout for regularization
     x = tf.keras.layers.LSTM(64, return_sequences=True, recurrent_dropout=0.2)(x)
     x = tf.keras.layers.Dropout(0.3)(x)
     x = tf.keras.layers.LSTM(32, recurrent_dropout=0.2)(x)
@@ -359,124 +359,156 @@ def evaluate_model(model, test_dataset, test_batches):
     return metrics
 
 def plot_training_history(history):
-    """Plot training metrics and export both a combined image and individual images."""
+    """Plot multiclass training metrics in separate figures and as a combined grid."""
+    logger.info("Plotting training history in separate figures (multiclass)")
     
-    # Combined 2x2 grid plot
-    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+    # Plot Loss
+    plt.figure(figsize=(8, 6))
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title("Multiclass Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('multiclass_model_loss.png', dpi=300)
+    plt.close()
     
-    # Loss plot
-    axs[0, 0].plot(history.history['loss'], label='Training Loss')
-    axs[0, 0].plot(history.history['val_loss'], label='Validation Loss')
-    axs[0, 0].set_title('Model Loss')
-    axs[0, 0].set_xlabel('Epoch')
-    axs[0, 0].set_ylabel('Loss')
+    # Plot Accuracy
+    plt.figure(figsize=(8, 6))
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title("Multiclass Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('multiclass_model_accuracy.png', dpi=300)
+    plt.close()
+    
+    # Plot AUC (if available)
+    if 'auc' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['auc'], label='Training AUC')
+        plt.plot(history.history['val_auc'], label='Validation AUC')
+        plt.title("Multiclass AUC")
+        plt.xlabel("Epoch")
+        plt.ylabel("AUC")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('multiclass_model_auc.png', dpi=300)
+        plt.close()
+    
+    # Plot F1 Score (if available)
+    if 'f1_score' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['f1_score'], label='Training F1 Score')
+        plt.plot(history.history['val_f1_score'], label='Validation F1 Score')
+        plt.title("Multiclass F1 Score")
+        plt.xlabel("Epoch")
+        plt.ylabel("F1 Score")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('multiclass_model_f1_score.png', dpi=300)
+        plt.close()
+    
+    # Plot Precision and Recall (if available)
+    if 'precision' in history.history and 'recall' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['precision'], label="Training Precision")
+        plt.plot(history.history['val_precision'], label="Validation Precision")
+        plt.plot(history.history['recall'], label="Training Recall")
+        plt.plot(history.history['val_recall'], label="Validation Recall")
+        plt.title("Multiclass Precision and Recall")
+        plt.xlabel("Epoch")
+        plt.ylabel("Score")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('multiclass_model_precision_recall.png', dpi=300)
+        plt.close()
+    
+    # Plot False Positive Rate (if available)
+    if 'false_positive_rate' in history.history:
+        plt.figure(figsize=(8, 6))
+        plt.plot(history.history['false_positive_rate'], label="Training FPR")
+        plt.plot(history.history['val_false_positive_rate'], label="Validation FPR")
+        plt.title("Multiclass False Positive Rate")
+        plt.xlabel("Epoch")
+        plt.ylabel("FPR")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig('multiclass_model_fpr.png', dpi=300)
+        plt.close()
+    
+    # Combined Grid Figure (2 x 3 grid)
+    # Top row: Loss, Accuracy, AUC; Bottom row: F1 Score, Precision/Recall, FPR.
+    fig, axs = plt.subplots(2, 3, figsize=(18, 12))
+    
+    # Loss graph (top-left)
+    axs[0, 0].plot(history.history['loss'], label='Train Loss')
+    axs[0, 0].plot(history.history['val_loss'], label='Val Loss')
+    axs[0, 0].set_title("Multiclass Loss")
     axs[0, 0].legend()
     axs[0, 0].grid(True)
     
-    # Accuracy plot
-    axs[0, 1].plot(history.history['accuracy'], label='Training Accuracy')
-    axs[0, 1].plot(history.history['val_accuracy'], label='Validation Accuracy')
-    axs[0, 1].set_title('Model Accuracy')
-    axs[0, 1].set_xlabel('Epoch')
-    axs[0, 1].set_ylabel('Accuracy')
+    # Accuracy graph (top-middle)
+    axs[0, 1].plot(history.history['accuracy'], label="Train Accuracy")
+    axs[0, 1].plot(history.history['val_accuracy'], label="Val Accuracy")
+    axs[0, 1].set_title("Multiclass Accuracy")
     axs[0, 1].legend()
     axs[0, 1].grid(True)
     
-    # F1 Score Plot (if available)
+    # AUC graph (top-right)
+    if 'auc' in history.history:
+        axs[0, 2].plot(history.history['auc'], label="Train AUC")
+        axs[0, 2].plot(history.history['val_auc'], label="Val AUC")
+        axs[0, 2].set_title("Multiclass AUC")
+        axs[0, 2].legend()
+        axs[0, 2].grid(True)
+    else:
+        axs[0, 2].set_visible(False)
+        
+    # F1 Score graph (bottom-left)
     if 'f1_score' in history.history:
-        axs[1, 0].plot(history.history['f1_score'], label='Training F1')
-        axs[1, 0].plot(history.history['val_f1_score'], label='Validation F1')
-        axs[1, 0].set_title('F1 Score')
-        axs[1, 0].set_xlabel('Epoch')
-        axs[1, 0].set_ylabel('F1 Score')
+        axs[1, 0].plot(history.history['f1_score'], label="Train F1")
+        axs[1, 0].plot(history.history['val_f1_score'], label="Val F1")
+        axs[1, 0].set_title("Multiclass F1 Score")
         axs[1, 0].legend()
         axs[1, 0].grid(True)
     else:
         axs[1, 0].set_visible(False)
     
-    # AUC Plot (if available)
-    if 'auc' in history.history:
-        axs[1, 1].plot(history.history['auc'], label='Training AUC')
-        axs[1, 1].plot(history.history['val_auc'], label='Validation AUC')
-        axs[1, 1].set_title('AUC')
-        axs[1, 1].set_xlabel('Epoch')
-        axs[1, 1].set_ylabel('AUC')
+    # Precision & Recall graph (bottom-middle)
+    if 'precision' in history.history and 'recall' in history.history:
+        axs[1, 1].plot(history.history['precision'], label="Train Precision")
+        axs[1, 1].plot(history.history['val_precision'], label="Val Precision")
+        axs[1, 1].plot(history.history['recall'], label="Train Recall")
+        axs[1, 1].plot(history.history['val_recall'], label="Val Recall")
+        axs[1, 1].set_title("Multiclass Precision & Recall")
         axs[1, 1].legend()
         axs[1, 1].grid(True)
     else:
         axs[1, 1].set_visible(False)
-    
-    plt.tight_layout()
-    plt.savefig('multiclass_training_history_combined.png', dpi=300)
-    plt.close()
-    
-    # Save individual Loss plot
-    plt.figure()
-    plt.plot(history.history['loss'], label='Training Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title('Model Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('multiclass_training_history_loss.png', dpi=300)
-    plt.close()
-    
-    # Save individual Accuracy plot
-    plt.figure()
-    plt.plot(history.history['accuracy'], label='Training Accuracy')
-    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title('Model Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('multiclass_training_history_accuracy.png', dpi=300)
-    plt.close()
-    
-    # Save individual F1 Score plot, if available
-    if 'f1_score' in history.history:
-        plt.figure()
-        plt.plot(history.history['f1_score'], label='Training F1')
-        plt.plot(history.history['val_f1_score'], label='Validation F1')
-        plt.title('F1 Score')
-        plt.xlabel('Epoch')
-        plt.ylabel('F1 Score')
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig('multiclass_training_history_f1.png', dpi=300)
-        plt.close()
-    
-    # Save individual AUC plot, if available
-    if 'auc' in history.history:
-        plt.figure()
-        plt.plot(history.history['auc'], label='Training AUC')
-        plt.plot(history.history['val_auc'], label='Validation AUC')
-        plt.title('AUC')
-        plt.xlabel('Epoch')
-        plt.ylabel('AUC')
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig('multiclass_training_history_auc.png', dpi=300)
-        plt.close()
-    
-    # Save individual False Positive Rate (FPR) plot, if available
+        
+    # False Positive Rate graph (bottom-right)
     if 'false_positive_rate' in history.history:
-        plt.figure()
-        plt.plot(history.history['false_positive_rate'], label='Training FPR')
-        plt.plot(history.history['val_false_positive_rate'], label='Validation FPR')
-        plt.title('False Positive Rate')
-        plt.xlabel('Epoch')
-        plt.ylabel('FPR')
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig('multiclass_training_history_fpr.png', dpi=300)
-        plt.close()
+        axs[1, 2].plot(history.history['false_positive_rate'], label="Train FPR")
+        axs[1, 2].plot(history.history['val_false_positive_rate'], label="Val FPR")
+        axs[1, 2].set_title("Multiclass False Positive Rate")
+        axs[1, 2].legend()
+        axs[1, 2].grid(True)
+    else:
+        axs[1, 2].set_visible(False)
+    
+    plt.tight_layout()
+    plt.savefig("multiclass_model_training_results_combined.png", dpi=300)
+    plt.close()
 
 def main():
     """Main function to run the entire training pipeline."""

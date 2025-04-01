@@ -213,7 +213,7 @@ def prepare_datasets():
             # Use robust statistics (median/IQR) for normalization
             # Collect some samples for calculating statistics
             all_features = []
-            for features, _ in preprocessed_dataset.take(10000):  # Use a subset for efficiency
+            for features, _ in preprocessed_dataset.take(10000): # subset 
                 all_features.append(features)
             
             # Stack the samples
@@ -567,7 +567,7 @@ def plot_training_history(history):
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title("Model Loss")
+    plt.title("Binary Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend()
@@ -580,7 +580,7 @@ def plot_training_history(history):
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['accuracy'], label='Training Accuracy')
     plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title("Model Accuracy")
+    plt.title("Binary Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.legend()
@@ -594,7 +594,7 @@ def plot_training_history(history):
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['auc'], label='Training AUC')
         plt.plot(history.history['val_auc'], label='Validation AUC')
-        plt.title("Model AUC")
+        plt.title("Binary AUC")
         plt.xlabel("Epoch")
         plt.ylabel("AUC")
         plt.ylim(.9998, 1)
@@ -609,7 +609,7 @@ def plot_training_history(history):
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['f1_score'], label='Training F1 Score')
         plt.plot(history.history['val_f1_score'], label='Validation F1 Score')
-        plt.title("Model F1 Score")
+        plt.title("Binary F1 Score")
         plt.xlabel("Epoch")
         plt.ylabel("F1 Score")
         plt.legend()
@@ -625,7 +625,7 @@ def plot_training_history(history):
         plt.plot(history.history['val_precision'], label="Validation Precision")
         plt.plot(history.history['recall'], label="Training Recall")
         plt.plot(history.history['val_recall'], label="Validation Recall")
-        plt.title("Model Precision and Recall")
+        plt.title("Binary Precision and Recall")
         plt.xlabel("Epoch")
         plt.ylabel("Score")
         plt.legend()
@@ -639,7 +639,7 @@ def plot_training_history(history):
         plt.figure(figsize=(8, 6))
         plt.plot(history.history['false_positive_rate'], label="Training FPR")
         plt.plot(history.history['val_false_positive_rate'], label="Validation FPR")
-        plt.title("Model False Positive Rate")
+        plt.title("Binary False Positive Rate")
         plt.xlabel("Epoch")
         plt.ylabel("FPR")
         plt.legend()
@@ -655,14 +655,14 @@ def plot_training_history(history):
     # Loss graph (top-left)
     axs[0, 0].plot(history.history['loss'], label='Train Loss')
     axs[0, 0].plot(history.history['val_loss'], label='Val Loss')
-    axs[0, 0].set_title("Loss")
+    axs[0, 0].set_title("Binary Loss")
     axs[0, 0].legend()
     axs[0, 0].grid(True)
     
     # Accuracy graph (top-middle)
     axs[0, 1].plot(history.history['accuracy'], label="Train Accuracy")
     axs[0, 1].plot(history.history['val_accuracy'], label="Val Accuracy")
-    axs[0, 1].set_title("Accuracy")
+    axs[0, 1].set_title("Binary Accuracy")
     axs[0, 1].legend()
     axs[0, 1].grid(True)
     
@@ -670,7 +670,7 @@ def plot_training_history(history):
     if 'auc' in history.history:
         axs[0, 2].plot(history.history['auc'], label="Train AUC")
         axs[0, 2].plot(history.history['val_auc'], label="Val AUC")
-        axs[0, 2].set_title("AUC")
+        axs[0, 2].set_title("Binary AUC")
         axs[0, 2].set_ylim(.9998, 1) 
         axs[0, 2].legend()
         axs[0, 2].grid(True)
@@ -681,7 +681,7 @@ def plot_training_history(history):
     if 'f1_score' in history.history:
         axs[1, 0].plot(history.history['f1_score'], label="Train F1")
         axs[1, 0].plot(history.history['val_f1_score'], label="Val F1")
-        axs[1, 0].set_title("F1 Score")
+        axs[1, 0].set_title("Binary F1 Score")
         axs[1, 0].legend()
         axs[1, 0].grid(True)
     else:
@@ -693,7 +693,7 @@ def plot_training_history(history):
         axs[1, 1].plot(history.history['val_precision'], label="Val Precision")
         axs[1, 1].plot(history.history['recall'], label="Train Recall")
         axs[1, 1].plot(history.history['val_recall'], label="Val Recall")
-        axs[1, 1].set_title("Precision & Recall")
+        axs[1, 1].set_title("Binary Precision & Recall")
         axs[1, 1].legend()
         axs[1, 1].grid(True)
     else:
@@ -703,7 +703,7 @@ def plot_training_history(history):
     if 'false_positive_rate' in history.history:
         axs[1, 2].plot(history.history['false_positive_rate'], label="Train FPR")
         axs[1, 2].plot(history.history['val_false_positive_rate'], label="Val FPR")
-        axs[1, 2].set_title("False Positive Rate")
+        axs[1, 2].set_title("Binary False Positive Rate")
         axs[1, 2].legend()
         axs[1, 2].grid(True)
     else:
