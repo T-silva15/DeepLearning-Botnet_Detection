@@ -563,6 +563,9 @@ def plot_training_history(history):
     """Plot binary training metrics in separate figures and as a combined grid."""
     logger.info("Plotting training history in separate figures (binary)")
     
+    # Create results directory if it doesn't exist
+    os.makedirs('proj/src/results', exist_ok=True)
+    
     # Plot Loss
     plt.figure(figsize=(8, 6))
     plt.plot(history.history['loss'], label='Training Loss')
@@ -573,7 +576,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('binary_model_loss.png', dpi=300)
+    plt.savefig('proj/src/results/binary_model_loss.png', dpi=300)
     plt.show()
     
     # Plot Accuracy
@@ -586,7 +589,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('binary_model_accuracy.png', dpi=300)
+    plt.savefig('proj/src/results/binary_model_accuracy.png', dpi=300)
     plt.show()
     
     # Plot AUC (if available)
@@ -601,7 +604,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('binary_model_auc.png', dpi=300)
+        plt.savefig('proj/src/results/binary_model_auc.png', dpi=300)
         plt.show()
     
     # Plot F1 Score (if available)
@@ -615,7 +618,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('binary_model_f1_score.png', dpi=300)
+        plt.savefig('proj/src/results/binary_model_f1_score.png', dpi=300)
         plt.show()
         
     # Plot Precision and Recall (if available)
@@ -631,7 +634,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('binary_model_precision_recall.png', dpi=300)
+        plt.savefig('proj/src/results/binary_model_precision_recall.png', dpi=300)
         plt.show()
     
     # Plot False Positive Rate (if available)
@@ -645,7 +648,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('binary_model_fpr.png', dpi=300)
+        plt.savefig('proj/src/results/binary_model_fpr.png', dpi=300)
         plt.show()
     
     # Combined Grid Figure (2 x 3 grid)
@@ -710,7 +713,7 @@ def plot_training_history(history):
         axs[1, 2].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig("binary_model_training_results_combined.png", dpi=300)
+    plt.savefig("proj/src/results/binary_model_training_results_combined.png", dpi=300)
     plt.show()
 
 def main():

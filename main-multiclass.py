@@ -372,7 +372,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('multiclass_model_loss.png', dpi=300)
+    plt.savefig('proj/src/results/multiclass_model_loss.png', dpi=300)
     plt.close()
     
     # Plot Accuracy
@@ -385,7 +385,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('multiclass_model_accuracy.png', dpi=300)
+    plt.savefig('proj/src/results/multiclass_model_accuracy.png', dpi=300)
     plt.close()
     
     # Plot AUC (if available)
@@ -399,7 +399,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('multiclass_model_auc.png', dpi=300)
+        plt.savefig('proj/src/results/multiclass_model_auc.png', dpi=300)
         plt.close()
     
     # Plot F1 Score (if available)
@@ -413,7 +413,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('multiclass_model_f1_score.png', dpi=300)
+        plt.savefig('proj/src/results/multiclass_model_f1_score.png', dpi=300)
         plt.close()
     
     # Plot Precision and Recall (if available)
@@ -429,7 +429,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('multiclass_model_precision_recall.png', dpi=300)
+        plt.savefig('proj/src/results/multiclass_model_precision_recall.png', dpi=300)
         plt.close()
     
     # Plot False Positive Rate (if available)
@@ -443,7 +443,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('multiclass_model_fpr.png', dpi=300)
+        plt.savefig('proj/src/results/multiclass_model_fpr.png', dpi=300)
         plt.close()
     
     # Combined Grid Figure (2 x 3 grid)
@@ -507,7 +507,7 @@ def plot_training_history(history):
         axs[1, 2].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig("multiclass_model_training_results_combined.png", dpi=300)
+    plt.savefig("proj/src/results/multiclass_model_training_results_combined.png", dpi=300)
     plt.close()
 
 def main():
