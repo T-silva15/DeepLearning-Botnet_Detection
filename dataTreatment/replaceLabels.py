@@ -2,9 +2,9 @@ import pandas as pd
 import os
 
 # Define the base directory containing the subfolders with CSV files
-base_dir = 'proj/datasets/sized_data/multiclass'
+base_dir = 'proj/datasets/sized_data/multiclass/max_lines/'
 
-# Create a mapping of label values to numbers, ensuring 'BENIGN' is mapped to 0
+# Create a mapping of label values to numbers
 label_mapping = {'BENIGN': 0, 'MIRAI-GREIP-FLOOD': 1, 'MIRAI-GREETH-FLOOD': 2, 'MIRAI-UDPPLAIN': 3}
 
 # Iterate through all subfolders and CSV files

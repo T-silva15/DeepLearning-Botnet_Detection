@@ -7,8 +7,6 @@ from pathlib import Path
 import random
 from binaryFalsePositiveRate import BinaryFalsePositiveRate
 
-
-
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -17,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Config:
     # Dataset parameters
     NUM_FEATURES = 39
-    NUM_LINES = 250000
+    NUM_LINES = "max"
     BATCH_SIZE = 32
     DATA_FOLDER = f'proj/datasets/sized_data/binaryclass/{NUM_LINES}_lines'
     MODEL_PATH = 'proj/models/best_binary_model.keras'
@@ -36,8 +34,6 @@ class Config:
     
 # Ensure data folder exists
 cfg = Config()
-if not os.path.exists(cfg.DATA_FOLDER):
-    raise FileNotFoundError(f"Data folder not found: {cfg.DATA_FOLDER}")
 
 def check_class_distribution(dataset):
     """Check the distribution of classes in the dataset"""
@@ -83,7 +79,7 @@ def load_dataset():
     
     logger.info(f"Found {len(csv_files)} CSV files")
     
-    # Create dataset from CSV files - important to use drop_remainder=False initially
+    # Create dataset from CSV files
     dataset = tf.data.experimental.make_csv_dataset(
         csv_files,
         batch_size=cfg.BATCH_SIZE,
@@ -118,7 +114,7 @@ def preprocess_features(features, label):
     # Explicitly set shape to remove any None dimensions
     features_tensor.set_shape([None, 1, cfg.NUM_FEATURES])
     
-    # Convert string labels to binary (0 for BENIGN, 1 for everything else)
+    # Convert string labels to binary (0 for BENIGN, 1 for other attack classes)
     label_tensor = tf.cast(tf.where(label == 'BENIGN', 0, 1), tf.float32)
     
     # Reshape label to match the expected output shape for F1Score (batch_size, 1)
@@ -207,10 +203,9 @@ def prepare_datasets():
     # Analyze dataset statistics for potential issues
     stats = analyze_dataset_stats(preprocessed_dataset.batch(100).take(10))
     
-    # Normalize features
+    # Normalize features with robust statistics (if available)
     if use_robust_stats:
         try:
-            # Use robust statistics (median/IQR) for normalization
             # Collect some samples for calculating statistics
             all_features = []
             for features, _ in preprocessed_dataset.take(10000): # subset 
@@ -223,7 +218,7 @@ def prepare_datasets():
             median = tfp.stats.percentile(feature_tensor, 50.0, axis=0)
             q75 = tfp.stats.percentile(feature_tensor, 75.0, axis=0)
             q25 = tfp.stats.percentile(feature_tensor, 25.0, axis=0)
-            iqr = tf.maximum(q75 - q25, 1e-6)  # Ensure no division by zero
+            iqr = tf.maximum(q75 - q25, 1e-6)  # Avoid division by zero
             
             logger.info(f"Calculated robust statistics on {len(all_features)} samples")
             
@@ -287,7 +282,6 @@ def prepare_datasets():
         logger.info("Ensuring class balance across dataset splits...")
         
         # Convert to numpy for easier manipulation
-        # samples_list = [(x.numpy(), y.numpy()) for x, y in normalized_dataset.as_numpy_iterator()]
         samples_list = [(x.numpy(), y.numpy()) for x, y in normalized_dataset]
         
 
@@ -347,7 +341,7 @@ def prepare_datasets():
         shuffled_dataset = normalized_dataset.shuffle(
             buffer_size=cfg.SHUFFLE_BUFFER, 
             reshuffle_each_iteration=True,
-            seed=42  # Set seed for reproducibility
+            seed=42  # Set seed for deterministic results
         )
         
         # Calculate dataset size and splits
@@ -389,7 +383,7 @@ def prepare_datasets():
         class_weights = None
         logger.warning("Could not compute class weights - missing classes in distribution")
     
-    # Batch the datasets - with drop_remainder=True to ensure consistent shapes
+    # Batch the datasets
     train_dataset = train_dataset.batch(cfg.BATCH_SIZE, drop_remainder=True)
     val_dataset = val_dataset.batch(cfg.BATCH_SIZE, drop_remainder=True)
     test_dataset = test_dataset.batch(cfg.BATCH_SIZE, drop_remainder=True)
@@ -586,6 +580,7 @@ def plot_training_history(history):
     plt.title("Binary Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
+    plt.ylim(.9998, 1)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -615,6 +610,7 @@ def plot_training_history(history):
         plt.title("Binary F1 Score")
         plt.xlabel("Epoch")
         plt.ylabel("F1 Score")
+        plt.ylim(.9998, 1)  
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
@@ -631,6 +627,7 @@ def plot_training_history(history):
         plt.title("Binary Precision and Recall")
         plt.xlabel("Epoch")
         plt.ylabel("Score")
+        plt.ylim(.9998, 1)  
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
@@ -666,6 +663,7 @@ def plot_training_history(history):
     axs[0, 1].plot(history.history['accuracy'], label="Train Accuracy")
     axs[0, 1].plot(history.history['val_accuracy'], label="Val Accuracy")
     axs[0, 1].set_title("Binary Accuracy")
+    axs[0, 1].set_ylim(.9998, 1)  
     axs[0, 1].legend()
     axs[0, 1].grid(True)
     
@@ -685,6 +683,7 @@ def plot_training_history(history):
         axs[1, 0].plot(history.history['f1_score'], label="Train F1")
         axs[1, 0].plot(history.history['val_f1_score'], label="Val F1")
         axs[1, 0].set_title("Binary F1 Score")
+        axs[1, 0].set_ylim(.9998, 1)  
         axs[1, 0].legend()
         axs[1, 0].grid(True)
     else:
@@ -697,6 +696,7 @@ def plot_training_history(history):
         axs[1, 1].plot(history.history['recall'], label="Train Recall")
         axs[1, 1].plot(history.history['val_recall'], label="Val Recall")
         axs[1, 1].set_title("Binary Precision & Recall")
+        axs[1, 1].set_ylim(.9998, 1)  
         axs[1, 1].legend()
         axs[1, 1].grid(True)
     else:
@@ -728,7 +728,7 @@ def main():
                 tf.config.experimental.set_memory_growth(device, True)
             logger.info(f"Found {len(physical_devices)} GPU(s), memory growth enabled")
         
-        # Set up deterministic behavior as much as possible
+        # Set up deterministic behavior (as much as possible)
         tf.random.set_seed(42)
         np.random.seed(42)
         random.seed(42)

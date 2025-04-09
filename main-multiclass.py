@@ -5,7 +5,7 @@ import os
 import logging
 from pathlib import Path
 import random
-import traceback  # Ensure traceback is imported
+import traceback
 from multiclassFalsePositiveRate import MulticlassFalsePositiveRate
 
 # Set up logging
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Config:
     # Dataset parameters
     NUM_FEATURES = 39
-    NUM_LINES = 250000
+    NUM_LINES = 500000
     BATCH_SIZE = 32
     DATA_FOLDER = f'proj/datasets/sized_data/multiclass/{NUM_LINES}_lines'
     MODEL_PATH = 'proj/models/best_multiclass_model.keras'
@@ -31,7 +31,7 @@ class Config:
     # Data processing
     SHUFFLE_BUFFER = 1000
     CLIP_VALUE = 10.0 
-    ENSURE_CLASS_BALANCE = True  # Keeping this for code consistency
+    ENSURE_CLASS_BALANCE = True
     
     # Multiclass specific
     NUM_CLASSES = 4  # 3 attack types + 1 benign class
@@ -42,7 +42,7 @@ def check_class_distribution(dataset):
     """Check the distribution of classes in the dataset"""
     labels = []
     
-    # Create a copy of the dataset to avoid consuming the original
+    # Create a copy of the dataset to avoid using the original
     dataset_copy = dataset.map(lambda x, y: (x, y))
     
     # Unbatch to get individual samples if batched
@@ -141,7 +141,7 @@ def prepare_datasets():
     mean_tensor = tf.constant(mean, dtype=tf.float32)
     std_tensor = tf.constant(std, dtype=tf.float32)
     
-    # Normalize the entire dataset
+    # Normalize the dataset
     normalized_dataset = preprocessed_dataset.map(
         lambda x, y: (tf.clip_by_value((x - mean_tensor) / std_tensor, -cfg.CLIP_VALUE, cfg.CLIP_VALUE), y)
     )
@@ -264,7 +264,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         ),
         tf.keras.callbacks.TerminateOnNaN(),
         tf.keras.callbacks.TensorBoard(
-            log_dir='./logs',
+            log_dir='proj/logs',
             histogram_freq=1,
             update_freq='epoch'
         )
@@ -349,7 +349,7 @@ def evaluate_model(model, test_dataset, test_batches):
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        plt.savefig('multiclass_confusion_matrix.png', dpi=300)
+        plt.savefig('proj/src/results/multiclass_confusion_matrix.png', dpi=300)
         plt.close()
         
     except Exception as e:
@@ -446,8 +446,7 @@ def plot_training_history(history):
         plt.savefig('proj/src/results/multiclass_model_fpr.png', dpi=300)
         plt.close()
     
-    # Combined Grid Figure (2 x 3 grid)
-    # Top row: Loss, Accuracy, AUC; Bottom row: F1 Score, Precision/Recall, FPR.
+    # Grid Figure (2 x 3)
     fig, axs = plt.subplots(2, 3, figsize=(18, 12))
     
     # Loss graph (top-left)
