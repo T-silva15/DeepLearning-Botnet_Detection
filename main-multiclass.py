@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 import random
 import traceback
-from multiclassFalsePositiveRate import MulticlassFalsePositiveRate
+from multiclassFalsePositiveRate import MulticlassFalsePositiveRate, create_multiclass_fpr_metrics
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Config:
     # Dataset parameters
     NUM_FEATURES = 39
-    NUM_LINES = 500000
+    NUM_LINES = 750000
     BATCH_SIZE = 32
     DATA_FOLDER = f'proj/datasets/sized_data/multiclass/{NUM_LINES}_lines'
     MODEL_PATH = 'proj/models/best_multiclass_model.keras'
@@ -218,6 +218,10 @@ def create_model():
         clipnorm=1.0
     )
     
+    # Create separate FPR metrics for each class, using class names
+    class_names = ["Benign", "Mirai_GREIP_Flood", "Mirai_GREETH_Flood", "MIRAI_UDPPLAIN"]
+    fpr_metrics = create_multiclass_fpr_metrics(cfg.NUM_CLASSES, class_names)
+    
     model.compile(
         optimizer=optimizer,
         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False, label_smoothing=0.1),
@@ -232,7 +236,7 @@ def create_model():
                 threshold=None,
                 dtype=tf.float32
             ),
-            MulticlassFalsePositiveRate(negative_class=0, name='false_positive_rate')
+            *fpr_metrics  # Add all FPR metrics
         ]
     )
     return model
@@ -432,81 +436,143 @@ def plot_training_history(history):
         plt.savefig('proj/src/results/multiclass_model_precision_recall.png', dpi=300)
         plt.close()
     
-    # Plot False Positive Rate (if available)
-    if 'false_positive_rate' in history.history:
-        plt.figure(figsize=(8, 6))
-        plt.plot(history.history['false_positive_rate'], label="Training FPR")
-        plt.plot(history.history['val_false_positive_rate'], label="Validation FPR")
-        plt.title("Multiclass False Positive Rate")
-        plt.xlabel("Epoch")
-        plt.ylabel("FPR")
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig('proj/src/results/multiclass_model_fpr.png', dpi=300)
-        plt.close()
+    # Plot individual class False Positive Rates
+    class_names = ["Benign", "Mirai_GREIP_Flood", "Mirai_GREETH_Flood", "MIRAI_UDPPLAIN"]
+    for class_name in class_names:
+        metric_name = f'false_positive_rate_{class_name}'
+        if metric_name in history.history:
+            plt.figure(figsize=(8, 6))
+            plt.plot(history.history[metric_name], label=f"Training FPR ({class_name})")
+            val_metric_name = f'val_{metric_name}'
+            if val_metric_name in history.history:
+                plt.plot(history.history[val_metric_name], label=f"Validation FPR ({class_name})")
+            plt.title(f"False Positive Rate - {class_name}")
+            plt.xlabel("Epoch")
+            plt.ylabel("FPR")
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.savefig(f'proj/src/results/multiclass_model_fpr_{class_name}.png', dpi=300)
+            plt.close()
     
-    # Grid Figure (2 x 3)
-    fig, axs = plt.subplots(2, 3, figsize=(18, 12))
+    # Multi-class FPR comparison plot
+    plt.figure(figsize=(10, 8))
+    for class_name in class_names:
+        metric_name = f'false_positive_rate_{class_name}'
+        if metric_name in history.history:
+            plt.plot(history.history[metric_name], label=f"{class_name}")
+    plt.title("Training FPR by Class")
+    plt.xlabel("Epoch")
+    plt.ylabel("FPR")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('proj/src/results/multiclass_model_fpr_comparison.png', dpi=300)
+    plt.close()
     
-    # Loss graph (top-left)
-    axs[0, 0].plot(history.history['loss'], label='Train Loss')
-    axs[0, 0].plot(history.history['val_loss'], label='Val Loss')
-    axs[0, 0].set_title("Multiclass Loss")
-    axs[0, 0].legend()
-    axs[0, 0].grid(True)
+    # Validation Multi-class FPR comparison plot
+    plt.figure(figsize=(10, 8))
+    for class_name in class_names:
+        val_metric_name = f'val_false_positive_rate_{class_name}'
+        if val_metric_name in history.history:
+            plt.plot(history.history[val_metric_name], label=f"{class_name}")
+    plt.title("Validation FPR by Class")
+    plt.xlabel("Epoch")
+    plt.ylabel("FPR")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('proj/src/results/multiclass_model_val_fpr_comparison.png', dpi=300)
+    plt.close()
     
-    # Accuracy graph (top-middle)
-    axs[0, 1].plot(history.history['accuracy'], label="Train Accuracy")
-    axs[0, 1].plot(history.history['val_accuracy'], label="Val Accuracy")
-    axs[0, 1].set_title("Multiclass Accuracy")
-    axs[0, 1].legend()
-    axs[0, 1].grid(True)
+    # Create enlarged grid figure for all metrics including per-class FPRs
+    num_metrics = 6  # base metrics
+    num_class_fprs = sum(1 for name in class_names if f'false_positive_rate_{name}' in history.history)
+    total_plots = num_metrics + num_class_fprs
     
-    # AUC graph (top-right)
+    # Calculate grid dimensions - aim for roughly square layout
+    import math
+    grid_cols = min(4, math.ceil(math.sqrt(total_plots)))
+    grid_rows = math.ceil(total_plots / grid_cols)
+    
+    # Create the grid
+    fig, axs = plt.subplots(grid_rows, grid_cols, figsize=(grid_cols*5, grid_rows*4))
+    axs = axs.flatten() if total_plots > 1 else [axs]  # Handle single plot case
+    
+    # Plot base metrics
+    plot_idx = 0
+    
+    # Loss graph
+    axs[plot_idx].plot(history.history['loss'], label='Train')
+    axs[plot_idx].plot(history.history['val_loss'], label='Val')
+    axs[plot_idx].set_title("Loss")
+    axs[plot_idx].legend()
+    axs[plot_idx].grid(True)
+    plot_idx += 1
+    
+    # Accuracy graph
+    axs[plot_idx].plot(history.history['accuracy'], label="Train")
+    axs[plot_idx].plot(history.history['val_accuracy'], label="Val")
+    axs[plot_idx].set_title("Accuracy")
+    axs[plot_idx].legend()
+    axs[plot_idx].grid(True)
+    plot_idx += 1
+    
+    # AUC graph
     if 'auc' in history.history:
-        axs[0, 2].plot(history.history['auc'], label="Train AUC")
-        axs[0, 2].plot(history.history['val_auc'], label="Val AUC")
-        axs[0, 2].set_title("Multiclass AUC")
-        axs[0, 2].legend()
-        axs[0, 2].grid(True)
-    else:
-        axs[0, 2].set_visible(False)
-        
-    # F1 Score graph (bottom-left)
-    if 'f1_score' in history.history:
-        axs[1, 0].plot(history.history['f1_score'], label="Train F1")
-        axs[1, 0].plot(history.history['val_f1_score'], label="Val F1")
-        axs[1, 0].set_title("Multiclass F1 Score")
-        axs[1, 0].legend()
-        axs[1, 0].grid(True)
-    else:
-        axs[1, 0].set_visible(False)
+        axs[plot_idx].plot(history.history['auc'], label="Train")
+        axs[plot_idx].plot(history.history['val_auc'], label="Val")
+        axs[plot_idx].set_title("AUC")
+        axs[plot_idx].legend()
+        axs[plot_idx].grid(True)
+        plot_idx += 1
     
-    # Precision & Recall graph (bottom-middle)
-    if 'precision' in history.history and 'recall' in history.history:
-        axs[1, 1].plot(history.history['precision'], label="Train Precision")
-        axs[1, 1].plot(history.history['val_precision'], label="Val Precision")
-        axs[1, 1].plot(history.history['recall'], label="Train Recall")
-        axs[1, 1].plot(history.history['val_recall'], label="Val Recall")
-        axs[1, 1].set_title("Multiclass Precision & Recall")
-        axs[1, 1].legend()
-        axs[1, 1].grid(True)
-    else:
-        axs[1, 1].set_visible(False)
-        
-    # False Positive Rate graph (bottom-right)
-    if 'false_positive_rate' in history.history:
-        axs[1, 2].plot(history.history['false_positive_rate'], label="Train FPR")
-        axs[1, 2].plot(history.history['val_false_positive_rate'], label="Val FPR")
-        axs[1, 2].set_title("Multiclass False Positive Rate")
-        axs[1, 2].legend()
-        axs[1, 2].grid(True)
-    else:
-        axs[1, 2].set_visible(False)
+    # F1 Score graph
+    if 'f1_score' in history.history:
+        axs[plot_idx].plot(history.history['f1_score'], label="Train")
+        axs[plot_idx].plot(history.history['val_f1_score'], label="Val")
+        axs[plot_idx].set_title("F1 Score")
+        axs[plot_idx].legend()
+        axs[plot_idx].grid(True)
+        plot_idx += 1
+    
+    # Precision graph
+    if 'precision' in history.history:
+        axs[plot_idx].plot(history.history['precision'], label="Train")
+        axs[plot_idx].plot(history.history['val_precision'], label="Val")
+        axs[plot_idx].set_title("Precision")
+        axs[plot_idx].legend()
+        axs[plot_idx].grid(True)
+        plot_idx += 1
+    
+    # Recall graph
+    if 'recall' in history.history:
+        axs[plot_idx].plot(history.history['recall'], label="Train")
+        axs[plot_idx].plot(history.history['val_recall'], label="Val")
+        axs[plot_idx].set_title("Recall")
+        axs[plot_idx].legend()
+        axs[plot_idx].grid(True)
+        plot_idx += 1
+    
+    # Individual class FPR graphs
+    for class_name in class_names:
+        metric_name = f'false_positive_rate_{class_name}'
+        if metric_name in history.history:
+            axs[plot_idx].plot(history.history[metric_name], label="Train")
+            val_metric_name = f'val_{metric_name}'
+            if val_metric_name in history.history:
+                axs[plot_idx].plot(history.history[val_metric_name], label="Val")
+            axs[plot_idx].set_title(f"FPR - {class_name}")
+            axs[plot_idx].legend()
+            axs[plot_idx].grid(True)
+            plot_idx += 1
+    
+    # Hide any unused subplots
+    for i in range(plot_idx, len(axs)):
+        axs[i].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig("proj/src/results/multiclass_model_training_results_combined.png", dpi=300)
+    plt.savefig("proj/src/results/multiclass_model_all_metrics.png", dpi=300)
     plt.close()
 
 def main():
@@ -522,7 +588,7 @@ def main():
         model.summary()
         history = train_model(model, train_dataset, val_dataset)
         metrics = evaluate_model(model, test_dataset, test_batches)
-        plot_training_history(history)
+        #plot_training_history(history)
         
         # Print summary of final results
         logger.info("========== FINAL TRAINING RESULTS ==========")
@@ -551,6 +617,16 @@ def main():
         if 'false_positive_rate' in history.history:
             logger.info(f"Final training FPR: {history.history['false_positive_rate'][-1]:.4f}")
             logger.info(f"Final validation FPR: {history.history['val_false_positive_rate'][-1]:.4f}")
+        
+        # Log individual class FPRs 
+        class_names = ["Benign", "Mirai_GREIP_Flood", "Mirai_GREETH_Flood", "MIRAI_UDPPLAIN"]
+        for name in class_names:
+            metric_name = f'false_positive_rate_{name}'
+            if metric_name in history.history:
+                logger.info(f"Final training FPR ({name}): {history.history[metric_name][-1]:.4f}")
+                val_metric_name = f'val_{metric_name}'
+                if val_metric_name in history.history:
+                    logger.info(f"Final validation FPR ({name}): {history.history[val_metric_name][-1]:.4f}")
         
         logger.info(f"Test set results:")
         for metric_name, value in metrics.items():
