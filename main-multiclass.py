@@ -441,30 +441,35 @@ def plot_training_history(history):
     for class_name in class_names:
         metric_name = f'false_positive_rate_{class_name}'
         if metric_name in history.history:
+            # Use the same figure size as other metrics (8, 6)
             plt.figure(figsize=(8, 6))
-            plt.plot(history.history[metric_name], label=f"Training FPR ({class_name})")
+            
+            # Add line width parameter to match other plots
+            plt.plot(history.history[metric_name], label=f"Training FPR", linewidth=2.0)
             val_metric_name = f'val_{metric_name}'
             if val_metric_name in history.history:
-                plt.plot(history.history[val_metric_name], label=f"Validation FPR ({class_name})")
-            plt.title(f"False Positive Rate - {class_name}")
-            plt.xlabel("Epoch")
-            plt.ylabel("FPR")
-            plt.legend()
+                plt.plot(history.history[val_metric_name], label=f"Validation FPR", linewidth=2.0)
+                
+            # Match title format with other metrics
+            plt.title(f"Multiclass FPR - {class_name}", fontsize=16, fontweight='bold')
+            plt.xlabel("Epoch", fontsize=14)
+            plt.ylabel("False Positive Rate", fontsize=14)
+            plt.legend(fontsize=12)
             plt.grid(True)
             plt.tight_layout()
             plt.savefig(f'proj/src/results/multiclass_model_fpr_{class_name}.png', dpi=300)
             plt.close()
     
     # Multi-class FPR comparison plot
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 8))  
     for class_name in class_names:
         metric_name = f'false_positive_rate_{class_name}'
         if metric_name in history.history:
-            plt.plot(history.history[metric_name], label=f"{class_name}")
-    plt.title("Training FPR by Class")
-    plt.xlabel("Epoch")
-    plt.ylabel("FPR")
-    plt.legend()
+            plt.plot(history.history[metric_name], label=f"{class_name}", linewidth=2.0)
+    plt.title("Training FPR by Class", fontsize=16, fontweight='bold')
+    plt.xlabel("Epoch", fontsize=14)
+    plt.ylabel("False Positive Rate", fontsize=14)
+    plt.legend(fontsize=12)
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('proj/src/results/multiclass_model_fpr_comparison.png', dpi=300)
