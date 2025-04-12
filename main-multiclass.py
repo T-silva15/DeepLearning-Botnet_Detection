@@ -593,7 +593,7 @@ def main():
         model.summary()
         history = train_model(model, train_dataset, val_dataset)
         metrics = evaluate_model(model, test_dataset, test_batches)
-        #plot_training_history(history)
+        plot_training_history(history)
         
         # Print summary of final results
         logger.info("========== FINAL TRAINING RESULTS ==========")
