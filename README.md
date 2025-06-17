@@ -150,10 +150,6 @@ python main-binary.py
 
 # Multiclass Classification  
 python main-multiclass.py
-
-# Analyze False Positive Rates
-python binaryFalsePositiveRate.py
-python multiclassFalsePositiveRate.py
 ```
 
 ## 📊 Dataset Description
