@@ -17,8 +17,8 @@ class Config:
     NUM_FEATURES = 39
     NUM_LINES = "max"
     BATCH_SIZE = 32
-    DATA_FOLDER = f'proj/datasets/sized_data/binaryclass/{NUM_LINES}_lines'
-    MODEL_PATH = 'proj/models/best_binary_model.keras'
+    DATA_FOLDER = f'../datasets/sized_data/binaryclass/{NUM_LINES}_lines'
+    MODEL_PATH = 'models/best_binary_model.keras'
     
     # Training parameters
     TRAIN_SPLIT = 0.7
@@ -498,7 +498,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         tf.keras.callbacks.TerminateOnNaN(),
         # TensorBoard logging
         tf.keras.callbacks.TensorBoard(
-            log_dir='proj/logs',
+            log_dir='logs',
             histogram_freq=1,
             update_freq='epoch'
         )
@@ -558,7 +558,7 @@ def plot_training_history(history):
     logger.info("Plotting training history in separate figures (binary)")
     
     # Create results directory if it doesn't exist
-    os.makedirs('proj/src/results', exist_ok=True)
+    os.makedirs('results', exist_ok=True)
     
     # Plot Loss
     plt.figure(figsize=(8, 6))
@@ -570,7 +570,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('proj/src/results/binary_model_loss.png', dpi=300)
+    plt.savefig('results/binary_model_loss.png', dpi=300)
     plt.close()
     
     # Plot Accuracy
@@ -584,7 +584,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('proj/src/results/binary_model_accuracy.png', dpi=300)
+    plt.savefig('results/binary_model_accuracy.png', dpi=300)
     plt.close()
     
     # Plot AUC (if available)
@@ -599,7 +599,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/binary_model_auc.png', dpi=300)
+        plt.savefig('results/binary_model_auc.png', dpi=300)
         plt.close()
     
     # Plot F1 Score (if available)
@@ -614,7 +614,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/binary_model_f1_score.png', dpi=300)
+        plt.savefig('results/binary_model_f1_score.png', dpi=300)
         plt.close()
         
     # Plot Precision and Recall (if available)
@@ -631,7 +631,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/binary_model_precision_recall.png', dpi=300)
+        plt.savefig('results/binary_model_precision_recall.png', dpi=300)
         plt.close()
     
     # Plot False Positive Rate (if available)
@@ -645,7 +645,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/binary_model_fpr.png', dpi=300)
+        plt.savefig('results/binary_model_fpr.png', dpi=300)
         plt.close()
     
     # Combined Grid Figure (2 x 3 grid)

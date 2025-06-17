@@ -18,8 +18,8 @@ class Config:
     NUM_FEATURES = 39
     NUM_LINES = 750000
     BATCH_SIZE = 32
-    DATA_FOLDER = f'proj/datasets/sized_data/multiclass/{NUM_LINES}_lines'
-    MODEL_PATH = 'proj/models/best_multiclass_model.keras'
+    DATA_FOLDER = f'../datasets/sized_data/multiclass/{NUM_LINES}_lines'
+    MODEL_PATH = 'models/best_multiclass_model.keras'
     
     # Training parameters
     TRAIN_SPLIT = 0.7
@@ -268,7 +268,7 @@ def train_model(model, train_dataset, val_dataset, class_weights=None):
         ),
         tf.keras.callbacks.TerminateOnNaN(),
         tf.keras.callbacks.TensorBoard(
-            log_dir='proj/logs',
+            log_dir='logs',
             histogram_freq=1,
             update_freq='epoch'
         )
@@ -353,7 +353,7 @@ def evaluate_model(model, test_dataset, test_batches):
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        plt.savefig('proj/src/results/multiclass_confusion_matrix.png', dpi=300)
+        plt.savefig('results/multiclass_confusion_matrix.png', dpi=300)
         plt.close()
         
     except Exception as e:
@@ -376,7 +376,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('proj/src/results/multiclass_model_loss.png', dpi=300)
+    plt.savefig('results/multiclass_model_loss.png', dpi=300)
     plt.close()
     
     # Plot Accuracy
@@ -389,7 +389,7 @@ def plot_training_history(history):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('proj/src/results/multiclass_model_accuracy.png', dpi=300)
+    plt.savefig('results/multiclass_model_accuracy.png', dpi=300)
     plt.close()
     
     # Plot AUC (if available)
@@ -403,7 +403,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/multiclass_model_auc.png', dpi=300)
+        plt.savefig('results/multiclass_model_auc.png', dpi=300)
         plt.close()
     
     # Plot F1 Score (if available)
@@ -417,7 +417,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/multiclass_model_f1_score.png', dpi=300)
+        plt.savefig('results/multiclass_model_f1_score.png', dpi=300)
         plt.close()
     
     # Plot Precision and Recall (if available)
@@ -433,7 +433,7 @@ def plot_training_history(history):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig('proj/src/results/multiclass_model_precision_recall.png', dpi=300)
+        plt.savefig('results/multiclass_model_precision_recall.png', dpi=300)
         plt.close()
     
     # Plot individual class False Positive Rates
@@ -457,7 +457,7 @@ def plot_training_history(history):
             plt.legend(fontsize=12)
             plt.grid(True)
             plt.tight_layout()
-            plt.savefig(f'proj/src/results/multiclass_model_fpr_{class_name}.png', dpi=300)
+            plt.savefig(f'results/multiclass_model_fpr_{class_name}.png', dpi=300)
             plt.close()
     
     # Multi-class FPR comparison plot
@@ -472,7 +472,7 @@ def plot_training_history(history):
     plt.legend(fontsize=12)
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('proj/src/results/multiclass_model_fpr_comparison.png', dpi=300)
+    plt.savefig('results/multiclass_model_fpr_comparison.png', dpi=300)
     plt.close()
     
     # Validation Multi-class FPR comparison plot
